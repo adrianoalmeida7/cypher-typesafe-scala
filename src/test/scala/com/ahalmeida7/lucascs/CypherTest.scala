@@ -6,7 +6,7 @@ import org.scalatest.matchers.ShouldMatchers
 
 class CypherTest extends FlatSpec with ShouldMatchers {
 
-  "Cypher" should "compile the most dumb query evah" in {
+  "Cypher" should "compile the simplest query" in {
      val query = new Cypher {
        start('s := (3,4,5,6))
 
@@ -74,11 +74,22 @@ class CypherTest extends FlatSpec with ShouldMatchers {
   it should "filter on a property" in {
      val query = new Cypher {
        start('a := 1)
-       where("a.name" === "adriano")
+       where('a->'name === "adriano")
        returns('a)
      }
     val parser = new CypherParser()
 
     query.toQuery should be === parser.parse("start a = (1) where a.name = \"adriano\" return a")
+  }
+
+  it should "filter on a property with logical connectors" in {
+     val query = new Cypher {
+       start('a := 1)
+       where('a->'name === "adriano" || !('a->'age > 13))
+       returns('a)
+     }
+    val parser = new CypherParser()
+
+    query.toQuery should be === parser.parse("start a = (1) where a.name = \"adriano\" or not (a.age > 13) return a")
   }
 }

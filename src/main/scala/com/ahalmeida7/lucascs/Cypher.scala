@@ -9,7 +9,7 @@ class Cypher {
 
   var returnItem:Seq[ReturnItem] = _
 
-  implicit def symbol2fun(identifier:Symbol) = new {
+  implicit def symbol2starts(identifier:Symbol) = new {
     def :=(ids:Long*) = {
       NodeById(identifier.name, ids:_*)
     }
@@ -27,13 +27,28 @@ class Cypher {
     }
   }
 
-  implicit def str2fun(str:String) = new {
-    def === (other:Any) = {
-      val pieces = str.split("\\.")
-      Equals(PropertyValue(pieces(0), pieces(1)), Literal(other))
+  implicit def str2clauses(str:(Symbol, Symbol)) = new {
+    def ===(other:Any) = {
+      Equals(PropertyValue(str._1.name, str._2.name), Literal(other))
+    }
+    def < (other:Any) = {
+      LessThan(PropertyValue(str._1.name, str._2.name), Literal(other))
+    }
+    def <= (other:Any) = {
+      LessThanOrEqual(PropertyValue(str._1.name, str._2.name), Literal(other))
+    }
+    def > (other:Any) = {
+      GreaterThan(PropertyValue(str._1.name, str._2.name), Literal(other))
+    }
+    def >= (other:Any) = {
+      GreaterThanOrEqual(PropertyValue(str._1.name, str._2.name), Literal(other))
     }
   }
-
+  implicit def clause2logic(c:Clause) = new {
+    def && (other:Clause) = And(c, other)
+    def || (other:Clause) = Or(c, other)
+    def unary_! = Not(c)
+  }
 
   def start(x:StartItem*) { startNode = x }
 
