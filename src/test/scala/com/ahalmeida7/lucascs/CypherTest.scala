@@ -92,4 +92,60 @@ class CypherTest extends FlatSpec with ShouldMatchers {
 
     query.toQuery should be === parser.parse("start a = (1) where a.name = \"adriano\" or not (a.age > 13) return a")
   }
+
+  it should "handler regular expressions" in {
+     val query = new Cypher {
+       start('a := 1)
+       where('a->'name =~ "adr.*".r)
+       returns('a)
+     }
+    val parser = new CypherParser()
+
+    query.toQuery should be === parser.parse("start a = (1) where a.name =~ /adr.*/ return a")
+  }
+
+  it should "compile order by clause" in {
+     val query = new Cypher {
+       start('a := 1)
+       returns('a)
+       orderBy('a->'name)
+     }
+    val parser = new CypherParser()
+
+    query.toQuery should be === parser.parse("start a = (1) return a order by a.name")
+  }
+  it should "compile order by clause with many props" in {
+     val query = new Cypher {
+       start('a := 1)
+       returns('a)
+       orderBy('a->'name asc, 'a->'age desc)
+     }
+    val parser = new CypherParser()
+
+    query.toQuery should be === parser.parse("start a = (1) return a order by a.name asc, a.age desc")
+  }
+  it should "compile limits" in {
+     val query = new Cypher {
+       start('a := 1)
+
+       returns('a)
+
+       limit(1)
+     }
+    val parser = new CypherParser()
+
+    query.toQuery should be === parser.parse("start a = (1) return a limit 1")
+  }
+  it should "compile skips" in {
+     val query = new Cypher {
+       start('a := 1)
+
+       returns('a)
+
+       skip(1)
+     }
+    val parser = new CypherParser()
+
+    query.toQuery should be === parser.parse("start a = (1) return a skip 1")
+  }
 }
