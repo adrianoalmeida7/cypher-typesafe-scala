@@ -59,4 +59,26 @@ class CypherTest extends FlatSpec with ShouldMatchers {
 
     query.toQuery should be === parser.parse("start a = <index, key, \"value\"> return a")
   }
+
+  it should "compile multiple starts and returns" in {
+     val query = new Cypher {
+       start('a := 1, 'b := 2)
+
+       returns('a, 'b)
+     }
+    val parser = new CypherParser()
+
+    query.toQuery should be === parser.parse("start a = (1), b = (2) return a, b")
+  }
+
+  it should "filter on a property" in {
+     val query = new Cypher {
+       start('a := 1)
+       where("a.name" === "adriano")
+       returns('a)
+     }
+    val parser = new CypherParser()
+
+    query.toQuery should be === parser.parse("start a = (1) where a.name = \"adriano\" return a")
+  }
 }
